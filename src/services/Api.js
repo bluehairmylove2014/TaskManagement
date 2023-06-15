@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-const REST_API_SERVER = 'http://localhost:2014';
+const REST_API_SERVER = 'https://boiling-bayou-37271-cab7b8a7e68a.herokuapp.com';
 
 // Task management
 export function getAllTasksApi(authToken) {
