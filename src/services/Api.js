@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-const REST_API_SERVER = 'https://boiling-bayou-37271-cab7b8a7e68a.herokuapp.com';
+const REST_API_SERVER = 'https://spring-green-magpie-tam.cyclic.app';
 
 // Task management
 export function getAllTasksApi(authToken) {
