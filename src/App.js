@@ -1,14 +1,14 @@
 
 import {
-  Routes, Route, Navigate
+  Routes, Route, Navigate, BrowserRouter
 } from 'react-router-dom';
-import { Suspense, lazy } from 'react';
+import { Suspense, lazy, useEffect, useState } from 'react';
+import { Toaster } from 'react-hot-toast';
 
 // Global style
 import './App.scss';
 
 // Component
-import Sidebar from './components/layouts/Sidebar';
 import Header from './components/layouts/Header';
 import Footer from './components/layouts/Footer';
 import PageLoader from './components/common/PageLoader';
@@ -21,40 +21,43 @@ import redux_store from './redux/store';
 import UserService from './services/UserService';
 
 // Code spliting, lazy loading component
-const DashboardPage = lazy(() => import('./pages/Dashboard/Dashboard'));
-const TimelinePage = lazy(() => import('./pages/Timeline/Timeline'));
 const TasksPage = lazy(() => import('./pages/Tasks/Tasks'));
-const SettingPage = lazy(() => import('./pages/Setting/Setting'));
-const FilesPage = lazy(() => import('./pages/Files/Files'));
 const LoginPage = lazy(() => import('./pages/Login/Login'));
 
 
 function App() {
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setIsLoading(false);
+    }, 2000);
+
+    return () => clearTimeout(timer);
+  }, []);
   return (
     <Provider store={redux_store}>
-      <div className="App">
-        <Suspense fallback={<PageLoader></PageLoader>}>
-          <Routes>
-            <Route exact path='/' element={<Navigate to='/dashboard' />} />
-            <Route exact path='/login' element={<LoginPage />} />
-            <Route path='/dashboard' element={
-              <><DashboardPage /><Sidebar /><Header account={UserService.isLoggedIn()} /><Footer /></>
-            } />
-            <Route path='/timeline' element={
-              <><TimelinePage /><Sidebar /><Header account={UserService.isLoggedIn()} /><Footer /></>
-            } />
-            <Route path='/tasks' element={
-              <><TasksPage /><Sidebar /><Header account={UserService.isLoggedIn()} /><Footer /></>
-            } />
-            <Route path='/setting' element={
-              <><SettingPage /><Sidebar /><Header account={UserService.isLoggedIn()} /><Footer /></>
-            } />
-            <Route path='/files' element={
-              <><FilesPage /><Sidebar /><Header account={UserService.isLoggedIn()} /><Footer /></>
-            } />
-          </Routes>
-        </Suspense>
-      </div>
+      <BrowserRouter>
+        <div className="App" data-testid='app'>      
+          <Toaster 
+            position="bottom-right"
+            reverseOrder={false}
+          />
+          <Suspense fallback={<PageLoader></PageLoader>}>
+          {isLoading ? (
+            <PageLoader />
+          ) : (
+            <Routes>
+              <Route exact path='/' element={<Navigate to='/tasks' />} />
+              <Route exact path='/login' element={<LoginPage />} />
+              <Route path='/tasks' element={
+                <><TasksPage /><Header account={UserService.isLoggedIn()} /><Footer /></>
+              } />
+            </Routes>
+          )}
+          </Suspense>
+        </div>
+      </BrowserRouter>
     </Provider>
   );
 }

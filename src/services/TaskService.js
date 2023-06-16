@@ -34,8 +34,9 @@ class TaskService {
         } 
         else {
             getAllTasksApi(authToken)
-                .then(res => {
-                    resolve({data: res.data, status_code: 200});
+                .then(res => res.json())
+                .then(data => {
+                    resolve({data, status_code: 200});
                 })
                 .catch(error => {
                     if(error.response && (error.response.status === 403 || error.response.status === 403)) {
@@ -57,8 +58,9 @@ class TaskService {
         } 
         else {
             getTaskByNamesApi(authToken, task_name)
-                .then(res => {
-                    resolve({data: res.data, status_code: 200});
+                .then(res => res.json())
+                .then(data => {
+                    resolve({data, status_code: 200});
                 })
                 .catch(error => {
                     if(error.response && (error.response.status === 403 || error.response.status === 403)) {
@@ -80,8 +82,9 @@ class TaskService {
         } 
         else {
             createNewTaskApi(user_id, task_data, authToken)
-                .then(res => {
-                    resolve({res, status_code: 200});
+                .then(res => res.json())
+                .then(data => {
+                    resolve({data, status_code: 200});
                 })
                 .catch(error => {
                     if(error.response && (error.response.status === 403 || error.response.status === 403)) {
@@ -99,17 +102,16 @@ class TaskService {
     return new Promise ((resolve, reject) => {
         const authToken = UserService.getAuthToken();
         if(!authToken) {
-            console.log('token is not exist serviceHandleGetAllTasks')
             resolve(403);
         } 
         editTaskApi(task_id, task_data, authToken)
-            .then(res => {
-                resolve({res, status_code: 200});
+            .then(res => res.json())
+            .then(data => {
+                resolve({data, status_code: 200});
             })
             .catch(error => {
                 if(error.response && error.response.status === 403) {
                     // to do to re-login
-                    console.log('expire token serviceHandleEditTask')
                 }
                 reject(error);
             })
@@ -119,17 +121,16 @@ class TaskService {
     return new Promise ((resolve, reject) => {
         const authToken = UserService.getAuthToken();
         if(!authToken) {
-            console.log('token is not exist serviceHandleGetAllTasks')
             resolve(403);
         } 
         deleteTaskApi(task_id, authToken)
-            .then(res => {
-                resolve({res, status_code: 200});
+            .then(res => res.json())
+            .then(data => {
+                resolve({data, status_code: 200});
             })
             .catch(error => {
                 if(error.response && error.response.status === 403) {
                     // to do to re-login
-                    console.log('expire token serviceHandleDeleteTask')
                 }
                 reject(error);
             })

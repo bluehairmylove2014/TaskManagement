@@ -39,22 +39,19 @@ class UserService {
 
     return new Promise((resolve, reject) => {
       loginApi(email, hashPsw)
-        .then(response => {
-          if (response.status === 200) {
-            if (response.data) {
-              this.authorizeToken = response.data.token;
-              localStorage.setItem('authorization_token', response.data.token);
-            }
-          }
-          resolve(response.status);
-        })
-        .catch(err => {
-          if(err.response && err.response.status === 401) {
-            resolve(err.response.status);
+        .then(response => response.json())
+        .then(data => {
+          if (data && data.code === 200) {
+            this.authorizeToken = data.token;
+            localStorage.setItem('authorization_token', data.token);
+            resolve(data.code);
           }
           else {
-            reject(err);
+            resolve(401);
           }
+        })
+        .catch(err => {
+            reject(err);
         })
     })
   }

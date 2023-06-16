@@ -16,7 +16,7 @@ $mobile-breakpoint: 480px;
 
     .cc-task__tag-list {
         // direction - justify content - align items - flex wrap
-        @include dflex(row, flex-start, center, nowrap);
+        @include dflex(row, flex-start, center, wrap);
         gap: 10px;
         .cc-task__tag {
             width: fit-content;
@@ -462,6 +462,22 @@ $mobile-breakpoint: 480px;
     }
 }
 
+.common-component__page-loader {
+    position: relative;
+    width: 100vw;
+    height: 100vh;
+    .cc__page-loader-container {
+        @include absolute-center;
+        width: 300px;
+        height: 85px;
+        overflow: hidden;
+        background-image: url('../../images/graphics/loading-sprite.5f0e6cf.png');
+        background-size: 300px 2600px;
+        background-repeat: no-repeat;
+        animation: page-loader 0.5s steps(30) infinite;
+    }
+}
+
 
 @media (max-width: $tablet-breakpoint) {
     .common-component__tasks-configuration .tasks__create-container {
@@ -472,4 +488,9 @@ $mobile-breakpoint: 480px;
     .common-component__filter-board {
         width: 300px!important;
     }
+}
+
+@keyframes page-loader {
+    0% { background-position: 0 0; }
+    100% { background-position: 0 -2600px }
 }

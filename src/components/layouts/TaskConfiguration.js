@@ -1,5 +1,6 @@
 import React, { useEffect, useRef, useState, useCallback, memo } from 'react';
 import { useNavigate } from 'react-router-dom';
+import toast from 'react-hot-toast';
 // Style
 import '../../assets/styles/scss/_common_component.scss'
 
@@ -19,7 +20,7 @@ import {
 // Service
 import TaskService from '../../services/TaskService';
 
-const TaskConfiguration = ({isShow, type, task_data}) => {
+const TaskConfiguration = ({ isShow, type, task_data, closeEdit }) => {
     const navigate = useNavigate();
 
     const TaskConfigurationRef = useRef(null);
@@ -28,7 +29,7 @@ const TaskConfiguration = ({isShow, type, task_data}) => {
     const reduxDispatch = useDispatch();
     const nof_tasks = useSelector(state => state.tasks.length);
 
-    const [formCreateTask, setFormCreateTask] = useState(type === 'edit'? task_data : {
+    const [formCreateTask, setFormCreateTask] = useState(type === 'edit' ? task_data : {
         status: '',
         tags: [],
         task_name: '',
@@ -40,15 +41,32 @@ const TaskConfiguration = ({isShow, type, task_data}) => {
 
     // use effect
     useEffect(() => {
-        toggleClassNoListener(TaskConfigurationRef.current, 'active');
+        isShow && toggleClassNoListener(TaskConfigurationRef.current, 'active');
     }, [isShow])
+    useEffect(() => {
+        if (task_data) {
+            if (Object.keys(task_data).length) {
+                setFormCreateTask(task_data);
+            }
+            else {
+                setFormCreateTask({
+                    status: '',
+                    tags: [],
+                    task_name: '',
+                    description: '',
+                    due_date: '',
+                    priority: ''
+                })
+            }
+        }
+    }, [task_data])
 
     // Methods
     const updateFormValue = useCallback((key, value) => {
         // Function to update a specific form value
         setFormCreateTask(prevValues => ({
-        ...prevValues,
-        [key]: value
+            ...prevValues,
+            [key]: value
         }));
     });
     const isRequireInputFilled = () => {
@@ -56,10 +74,10 @@ const TaskConfiguration = ({isShow, type, task_data}) => {
             setErrorNotification('Please choose task name!');
             return false;
         }
-        else if(!formCreateTask.status) {
+        else if (!formCreateTask.status) {
             setErrorNotification('Please choose task status!');
             return false;
-        } 
+        }
         else {
             setErrorNotification('');
             return true;
@@ -70,16 +88,16 @@ const TaskConfiguration = ({isShow, type, task_data}) => {
         e.preventDefault();
 
         // Check if required input is filled?
-        if(!isRequireInputFilled()) {
+        if (!isRequireInputFilled()) {
             return;
         }
-        
+
         // Get form ref
         const formResult = e.target;
 
         // Create new task val with from value
         const newTask = {
-            id: type === 'new' ? `task@${nof_tasks + 1}` : formCreateTask.id ,
+            id: type === 'new' ? `task@${nof_tasks + 1}` : formCreateTask.id,
             status: formCreateTask.status,
             tags: formCreateTask.tags,
             task_name: formCreateTask.task_name,
@@ -87,64 +105,80 @@ const TaskConfiguration = ({isShow, type, task_data}) => {
             due_date: formCreateTask.due_date ? formCreateTask.due_date : 'Unlimited',
             priority: formCreateTask.priority
         }
-        if(type === 'new') {
-            // If put task to bottom, push back new task
-            // Else push head new task
-            reduxDispatch(createNewTask(newTask, formResult.location[0].checked ? 'bottom' : 'top'));
-
+        if (type === 'new') {
             // Update in database
-            TaskService.serviceHandleCreateTask(1, newTask)
+            const createTaskPromise = TaskService.serviceHandleCreateTask(1, newTask);
+            toast.promise(
+                createTaskPromise,
+                {
+                    loading: 'Creating task...',
+                    success: <b>Create task successfully</b>,
+                    error: <b>Could not create task.</b>,
+                }
+            );
+
+            createTaskPromise
                 .then(response => {
-                    if(response.status_code === 401 || response.status_code === 403) {
+                    if (response.status_code === 401 || response.status_code === 403) {
                         // Navigate to login
-                        navigate('/login')
-                    }
-                    else {
+                        navigate('/login');
+                    } else {
+                        // If put task to bottom, push back new task
+                        // Else push head new task
+                        reduxDispatch(createNewTask(newTask, formResult.location[0].checked ? 'bottom' : 'top'));
                         return response;
                     }
                 })
                 .catch(error => {
-                    console.log(error)
-                })
+                    // Handle error
+                });
         }
         else {
-            // Update in state to update interface 
-            reduxDispatch(editTask(newTask))
-
+            // Update in state to update interface
+            reduxDispatch(editTask(newTask));
             // Update in database
-            TaskService.serviceHandleEditTask(newTask.id, newTask)
+            const editTaskPromise = TaskService.serviceHandleEditTask(newTask.id, newTask);
+            toast.promise(
+                editTaskPromise,
+                {
+                    loading: 'Updating task...',
+                    success: <b>Update task successfully</b>,
+                    error: <b>Could not update task.</b>,
+                }
+            );
+
+            editTaskPromise
                 .then(response => {
-                    if(response.status_code === 401 || response.status_code === 403) {
+                    if (response.status_code === 401 || response.status_code === 403) {
                         // Navigate to login
-                        navigate('/login')
-                    }
-                    else {
+                        navigate('/login');
+                    } else {
                         return response;
                     }
                 })
                 .catch(error => {
-                    console.log(error)
-                })
+                    // Handle error
+                });
         }
 
-        // Hide create layout
-        TaskConfigurationRef.current.classList.remove('active');
+        toggleClassNoListener(TaskConfigurationRef.current, 'active')
+        closeEdit();
     }
     const handleChangeTagname = (e) => {
         const addTagBtn = createTagsRef.current.querySelector('button');
-        
-        if(addTagBtn) {
-            if(e.target.value.length === 0) {
+
+        if (addTagBtn) {
+            if (e.target.value.length === 0) {
                 addTagBtn.classList.remove('active');
             }
             else {
-                if(!addTagBtn.classList.contains('active')) {
+                if (!addTagBtn.classList.contains('active')) {
                     addTagBtn.classList.add('active');
                 }
             }
         }
         else {
-            console.log('Cannot find add tag button')
+            // console.log('Cannot find add tag button')
         }
     }
     const handleDeleteTempTag = (tag_index) => {
@@ -155,9 +189,9 @@ const TaskConfiguration = ({isShow, type, task_data}) => {
     const renderTag = (tags) => {
         const tag_react_element = tags.map((t, i) => {
             return (
-                <div 
-                    className="cc-task__tag" 
-                    style={{backgroundColor: t.background_color} }
+                <div
+                    className="cc-task__tag"
+                    style={{ backgroundColor: t.background_color }}
                     key={`tag@${t.tag_name, i}`}
                 >
                     <p>{t.tag_name}</p>
@@ -174,13 +208,13 @@ const TaskConfiguration = ({isShow, type, task_data}) => {
         const inputs = createTagsRef.current.getElementsByTagName('input');
         const tagName = inputs[0].value;
         const tagColor = inputs[1].value;
-    
+
         // Use the tagName and tagColor variables to create a tag
         updateFormValue('tags', [...formCreateTask.tags, {
             tag_name: tagName,
             background_color: tagColor
         }])
-        
+
         // Reset the input values
         inputs[0].value = '';
         inputs[1].value = '';
@@ -190,7 +224,11 @@ const TaskConfiguration = ({isShow, type, task_data}) => {
     }
 
     return (
-        <div className="common-component__tasks-configuration" ref={TaskConfigurationRef}>
+        <div
+            className={`common-component__tasks-configuration`}
+            ref={TaskConfigurationRef}
+            data-testid='task-configuration'
+        >
             {type === 'new' && <h3>CREATE NEW TASK</h3>}
             {type === 'edit' && <h3>EDIT TASK</h3>}
             {/* Form create new task, high process */}
@@ -259,9 +297,9 @@ const TaskConfiguration = ({isShow, type, task_data}) => {
                         <input type="radio" id='choose-location__top' name='location' />
                         <label htmlFor="choose-location__top">At the top</label>
                     </div>
-                    <button 
-                        className="task-create__choose-duedate" 
-                        type='button' 
+                    <button
+                        className="task-create__choose-duedate"
+                        type='button'
                         onClick={e => e.target.childNodes[1].showPicker()}
                     >
                         <label htmlFor="choose-duedate">Due Date: </label>
@@ -297,7 +335,13 @@ const TaskConfiguration = ({isShow, type, task_data}) => {
             <button
                 className='tasks__close-btn'
                 onClick={() => {
-                    toggleClassNoListener(TaskConfigurationRef.current, 'active')
+                    if (closeEdit) {
+                        toggleClassNoListener(TaskConfigurationRef.current, 'active')
+                        closeEdit();
+                    }
+                    else {
+                        toggleClassNoListener(TaskConfigurationRef.current, 'active')
+                    }
                 }}
             >
                 <i className="fi fi-bs-cross-circle"></i>

@@ -99,7 +99,7 @@ const Login = () => {
                 }
             })
             .catch(err => {
-                console.log(err);
+                // console.log(err);
             })
     }
     const showPassword = (e) => {
@@ -121,6 +121,7 @@ const Login = () => {
                 <form
                     className={`login__form`}
                     onSubmit={signin}
+                    noValidate
                 >
                     <h3>Login</h3>
                     <p>One more step to unlock your profile</p>

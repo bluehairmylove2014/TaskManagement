@@ -1,6 +1,7 @@
 
-import React, {useEffect, useState } from 'react';
+import React, {useCallback, useEffect, useState } from 'react';
 import '../../assets/styles/scss/_tasks.scss';
+import toast, { Toaster } from 'react-hot-toast';
 
 // subcomponent
 import Task from '../../components/common/Task';
@@ -16,7 +17,6 @@ import TaskService from '../../services/TaskService';
 // Helper
 import {
     toggleClass,
-    toggleClassNoListener
 } from '../../utils/helpers/ToggleClass';
 
 // Redux
@@ -29,7 +29,9 @@ import { debounce } from 'lodash';
 const Tasks = () => {
     // Define
     const tasks = useSelector(state => state.tasks);
-    const [isCreateTaskActive, setIsCreateTaskActive] = useState(false);
+    const [isConfigTaskActive, setIsConfigTaskActive] = useState(false);
+    const [configTaskType, setConfigTaskType] = useState('new');
+    const [defaultTaskData, setDefaultTaskData] = useState([]);
     const [isFilterActive, setIsFilterActive] = useState(false);
     const reduxDispatch = useDispatch();
 
@@ -56,7 +58,6 @@ const Tasks = () => {
      * }
      */
     const fetchTasksDataByName = debounce((name) => {
-        console.log('fetch');
         TaskService.serviceSetTasksByName(name)
             .then(response => {
                 if(response.status_code === 401 || response.status_code === 403) {
@@ -127,8 +128,9 @@ const Tasks = () => {
                             </div>
                         </div>
                         <button
-                            onClick={() => setIsCreateTaskActive(!isCreateTaskActive)} 
+                            onClick={() => openCreateTask()} 
                             id={task_status}
+                            data-testid={`createTask-btn-${task_list_name}`}
                         >
                             <i className="fi fi-br-plus"></i>
                         </button>
@@ -137,13 +139,33 @@ const Tasks = () => {
                 <div className="tasks-main-list__content">
                     {
                         taskResult.map(t => {
-                            return <Task task={t} key={t.id}/>
+                            return <Task 
+                                task={t} 
+                                key={t.id} 
+                                openEdit={openEditTask}
+                            />
                         })
                     }
                 </div>
             </div>
         )
     }
+
+    const openEditTask = useCallback((task_data) => {
+        setDefaultTaskData(task_data);
+        setConfigTaskType('edit');
+        setIsConfigTaskActive(true);
+    })
+    const openCreateTask = () => {
+        setDefaultTaskData({});
+        setConfigTaskType('new');
+        setIsConfigTaskActive(true);
+    }
+    const closeEditTask = useCallback(() => {
+        setConfigTaskType('new');
+        setDefaultTaskData({});
+        setIsConfigTaskActive(false);
+    })
 
     return (
         <main className='tasks'>
@@ -173,7 +195,12 @@ const Tasks = () => {
                 {renderTaskList('Process', 'Process', tasks)}
                 {renderTaskList('Done', 'Done', tasks)}
             </div>
-            <TaskConfiguration isShow={isCreateTaskActive} type={'new'}/>
+            <TaskConfiguration 
+                isShow={isConfigTaskActive} 
+                type={configTaskType}
+                task_data={defaultTaskData}
+                closeEdit={closeEditTask}
+            />
             <FilterBoard isShow={isFilterActive} callback={setIsFilterActive}/>
         </main>
     );

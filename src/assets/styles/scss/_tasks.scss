@@ -7,7 +7,7 @@ $mobile-breakpoint: 480px;
 
 .tasks {
     position: relative;
-    padding: 5rem 0 0 7rem;
+    padding: 5rem 0 0 6rem;
     width: calc(100% - 5rem);
     height: calc(100vh - 5rem);
     // direction - justify content - align items - flex wrap
@@ -369,7 +369,7 @@ $mobile-breakpoint: 480px;
 
 @media (max-width: $desktop-breakpoint) {
     .tasks {
-        padding: 8rem 0 0 7rem;
+        padding: 8rem 0 0 5rem;
         height: calc(100vh - 8rem);
         .tasks__header {
             .tasks__search-box {
@@ -380,6 +380,7 @@ $mobile-breakpoint: 480px;
 }
 @media (max-width: $tablet-breakpoint) {
     .tasks {
+        padding: 8rem 0 0 3rem;
         .tasks__header {
             .tasks__search-box {
                 input {
@@ -391,7 +392,7 @@ $mobile-breakpoint: 480px;
 }
 @media (max-width: $mobile-breakpoint) {
     .tasks {
-        padding: 10rem 0 0 7rem;
+        padding: 10rem 0 0 2rem;
         height: calc(100vh - 10rem);
         .tasks__main .tasks-main__list .tasks-main-list__header {
             height: 50px;

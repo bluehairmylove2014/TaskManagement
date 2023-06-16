@@ -1,4 +1,4 @@
-import React, { memo, useRef, useState } from 'react';
+import React, { memo, useEffect, useRef, useState } from 'react';
 import '../../assets/styles/scss/_common_component.scss';
 // Helpers
 import {
@@ -9,11 +9,15 @@ const ButtonDropdown = ({placeHolder, icon, selectVal, callbackKey, callback, de
     const [selectedVal, setSelectedVal] = useState(defaultValue ? defaultValue : '');
     const wrapper = useRef(null);
 
+    useEffect(() => {
+        setSelectedVal(defaultValue ? defaultValue : '')
+    }, [defaultValue])
+
     const renderOptions = (options) => {
         return (
             options.map((op, i) => {
                 return (
-                    <button type='button' key={placeHolder + i} onClick={() => {
+                    <button type='button' data-id={op} key={placeHolder + i} onClick={() => {
                         setSelectedVal(op);
                         toggleClass(wrapper.current, 'active')
                         callback(callbackKey, op);
