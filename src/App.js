@@ -26,7 +26,7 @@ const LoginPage = lazy(() => import('./pages/Login/Login'));
 
 
 function App() {
-  const [isLoading, setIsLoading] = useState(true);
+  const [isLoading, setIsLoading] = useState(true); // Initialize state for loading status
 
   useEffect(() => {
     const timer = setTimeout(() => {

@@ -44,6 +44,9 @@ const TaskConfiguration = ({ isShow, type, task_data, closeEdit }) => {
         isShow && toggleClassNoListener(TaskConfigurationRef.current, 'active');
     }, [isShow])
     useEffect(() => {
+        console.log(formCreateTask)
+    }, [formCreateTask])
+    useEffect(() => {
         if (task_data) {
             if (Object.keys(task_data).length) {
                 setFormCreateTask(task_data);
@@ -68,7 +71,7 @@ const TaskConfiguration = ({ isShow, type, task_data, closeEdit }) => {
             ...prevValues,
             [key]: value
         }));
-    });
+    }, []);
     const isRequireInputFilled = () => {
         if (!formCreateTask.task_name) {
             setErrorNotification('Please choose task name!');
@@ -76,6 +79,10 @@ const TaskConfiguration = ({ isShow, type, task_data, closeEdit }) => {
         }
         else if (!formCreateTask.status) {
             setErrorNotification('Please choose task status!');
+            return false;
+        }
+        else if (!formCreateTask.priority) {
+            setErrorNotification('Please choose task priority!');
             return false;
         }
         else {
@@ -97,7 +104,7 @@ const TaskConfiguration = ({ isShow, type, task_data, closeEdit }) => {
 
         // Create new task val with from value
         const newTask = {
-            id: type === 'new' ? `task@${nof_tasks + 1}` : formCreateTask.id,
+            tid: type === 'new' ? `task@${nof_tasks + 1}` : formCreateTask.tid,
             status: formCreateTask.status,
             tags: formCreateTask.tags,
             task_name: formCreateTask.task_name,
@@ -137,7 +144,7 @@ const TaskConfiguration = ({ isShow, type, task_data, closeEdit }) => {
             // Update in state to update interface
             reduxDispatch(editTask(newTask));
             // Update in database
-            const editTaskPromise = TaskService.serviceHandleEditTask(newTask.id, newTask);
+            const editTaskPromise = TaskService.serviceHandleEditTask(newTask.tid, newTask);
             toast.promise(
                 editTaskPromise,
                 {
@@ -158,6 +165,7 @@ const TaskConfiguration = ({ isShow, type, task_data, closeEdit }) => {
                 })
                 .catch(error => {
                     // Handle error
+                    console.log("Error: ", error)
                 });
         }
 
@@ -178,7 +186,7 @@ const TaskConfiguration = ({ isShow, type, task_data, closeEdit }) => {
             }
         }
         else {
-            // console.log('Cannot find add tag button')
+            console.log('Cannot find add tag button')
         }
     }
     const handleDeleteTempTag = (tag_index) => {
@@ -192,7 +200,7 @@ const TaskConfiguration = ({ isShow, type, task_data, closeEdit }) => {
                 <div
                     className="cc-task__tag"
                     style={{ backgroundColor: t.background_color }}
-                    key={`tag@${t.tag_name, i}`}
+                    key={`tag@${t.tag_name}-${i}`}
                 >
                     <p>{t.tag_name}</p>
                     <button type='button' onClick={() => handleDeleteTempTag(i)}>x</button>
@@ -240,7 +248,7 @@ const TaskConfiguration = ({ isShow, type, task_data, closeEdit }) => {
                         className='tasks-create__task-name'
                         name='task_name'
                         defaultValue={formCreateTask.task_name}
-                        onChange={(e) => updateFormValue('task_name', e.target.value)}
+                        onInput={(e) => updateFormValue('task_name', e.target.value)}
                     />
                     <div className="tasks-create-main__tags">
                         {renderTag(formCreateTask.tags)}
@@ -250,7 +258,7 @@ const TaskConfiguration = ({ isShow, type, task_data, closeEdit }) => {
                                 e.target.style.display = 'none';
                                 toggleClassNoListener(createTagsRef.current, 'active');
                             }}
-
+                            data-testid='add-tag-btn'
                         >
                             Add tag +
                         </button>
@@ -259,7 +267,7 @@ const TaskConfiguration = ({ isShow, type, task_data, closeEdit }) => {
                                 type="text"
                                 placeholder='Tag name'
                                 name='tag_name'
-                                onChange={handleChangeTagname}
+                                onInput={handleChangeTagname}
                             />
                             <input type="color" name='tag_color' />
                             <button type='button' onClick={createTempTags}>
@@ -273,7 +281,7 @@ const TaskConfiguration = ({ isShow, type, task_data, closeEdit }) => {
                         className='tasks-create__task-des'
                         name='task_des'
                         defaultValue={formCreateTask.description}
-                        onChange={(e) => updateFormValue('description', e.target.value)}
+                        onInput={(e) => updateFormValue('description', e.target.value)}
                     />
                 </div>
                 <div className="task-create__sub-information">
@@ -308,7 +316,7 @@ const TaskConfiguration = ({ isShow, type, task_data, closeEdit }) => {
                             name="duedate"
                             id='choose-duedate'
                             defaultValue={revertShortenedDatetime(formCreateTask.due_date)}
-                            onChange={(e) => updateFormValue('due_date', shortenDatetime(e.target.value))}
+                            onInput={(e) => updateFormValue('due_date', shortenDatetime(e.target.value))}
                         />
                     </button>
                     <ButtonDropdown

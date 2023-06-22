@@ -1,5 +1,5 @@
 // Service
-import { loginApi, registernApi, checkLoginApi } from './Api';
+import { loginApi, checkLoginApi } from './Api';
 // Encode support
 import { SHA256 } from "crypto-js";
 
@@ -39,19 +39,26 @@ class UserService {
 
     return new Promise((resolve, reject) => {
       loginApi(email, hashPsw)
-        .then(response => response.json())
-        .then(data => {
-          if (data && data.code === 200) {
-            this.authorizeToken = data.token;
-            localStorage.setItem('authorization_token', data.token);
-            resolve(data.code);
+        .then(res => {
+          if (!res.ok) {
+            throw new Error(res.status);
           }
-          else {
-            resolve(401);
-          }
+          return res.json();
         })
-        .catch(err => {
-            reject(err);
+        .then(data => {
+          this.authorizeToken = data.token;
+          console.log(this.authorizeToken)
+          localStorage.setItem('authorization_token', data.token);
+          resolve(data.code);
+        })
+        .catch(error => {
+          // Check if error message is a number (which would mean it's a status code)
+          const statusCode = parseInt(error.message, 10);
+          if (!isNaN(statusCode)) {
+            resolve({ status_code: statusCode });
+          } else {
+            reject(error);
+          }
         })
     })
   }
@@ -86,22 +93,28 @@ class UserService {
   isLoggedIn() {
     return new Promise((resolve, reject) => {
       const authToken = this.getAuthToken();
-      if(!authToken) {
-          resolve({status_code: 403});
-      } 
+      if (!authToken) {
+        resolve({ status_code: 403 });
+      }
       else {
         checkLoginApi(authToken)
           .then(res => {
-            resolve(res);
-          })
-          .catch(err => {
-            const status = err.response && err.response.status;
-            if(status === 401 || status === 403) {
-                // to do to re-login
-                console.log('expire token isLoggedIn')
-                resolve({status_code: 403});
+            if (!res.ok) {
+              throw new Error(res.status);
             }
-            reject(err);
+            return res.json();
+          })
+          .then(data => {
+            resolve({ data, status_code: 200 });
+          })
+          .catch(error => {
+            // Check if error message is a number (which would mean it's a status code)
+            const statusCode = parseInt(error.message, 10);
+            if (!isNaN(statusCode)) {
+              resolve({ status_code: statusCode, error: error });
+            } else {
+              reject(error);
+            }
           })
       }
     });

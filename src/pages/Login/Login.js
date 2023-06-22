@@ -84,6 +84,7 @@ const Login = () => {
         // Login process
         UserService.login(loginForm.email, loginForm.password)
             .then(res_code => {
+                console.log("This is res_code: ", res_code)
                 // Success
                 if(res_code === 200) {
                     // Show success notification
@@ -99,7 +100,8 @@ const Login = () => {
                 }
             })
             .catch(err => {
-                // console.log(err);
+                console.log("This is err: ", err)
+                console.log(err);
             })
     }
     const showPassword = (e) => {
@@ -116,7 +118,7 @@ const Login = () => {
             {/* Login form */}
             <div className="login">
                 <div className="login__logo">
-                    <img src={sc_logo} />
+                    <img src={sc_logo} alt="Logo" />
                 </div>
                 <form
                     className={`login__form`}
@@ -133,7 +135,7 @@ const Login = () => {
                             id="login-email-input"
                             placeholder="example@kyanon.digital"
                             name="email"
-                            onChange={(e) => updateFormValue('email', e.target.value)}
+                            onInput={(e) => updateFormValue('email', e.target.value)}
                         />
                     </div>
 
@@ -146,12 +148,12 @@ const Login = () => {
                             placeholder="iloveKyanonDigital"
                             name="password"
                             ref={pswLogin}
-                            onChange={(e) => updateFormValue('password', e.target.value)}
+                            onInput={(e) => updateFormValue('password', e.target.value)}
                         />
                     </div>
                     <div className="login_interact">
                         <div className="login-interact__show-psw-btn">
-                            <input type="checkbox" id="checkbox" name="showPswStatus" onChange={showPassword} />
+                            <input type="checkbox" id="checkbox" name="showPswStatus" onInput={showPassword} />
                             <label htmlFor="checkbox">Show Password</label>
                         </div>
                         <button type="submit">Sign in</button>
@@ -163,20 +165,22 @@ const Login = () => {
                             <img
                                 className={`login-bus-running__slider`}
                                 src={slider_img}
+                                alt="Slider start"
                             />
                             <img
                                 className={`login-bus-running__slider`}
                                 src={slider_img}
+                                alt="Slider end"
                             />
                         </div>
                         <div className="login-bus-running__msg-container" ref={wrongMsg}>
-                            <img src={enoti_wrong} className="login-bus-running__msg" id="enoti-wrong" />
-                            <img src={enoti_empty} className="login-bus-running__msg" id="enoti-empty" />
-                            <img src={enoti_email_invalid} className="login-bus-running__msg" id="enoti-email-invalid" />
-                            <img src={enoti_psw_short} className="login-bus-running__msg" id="enoti-psw-short" />
+                            <img src={enoti_wrong} className="login-bus-running__msg" id="enoti-wrong" alt="Error Notification Wrong" />
+                            <img src={enoti_empty} className="login-bus-running__msg" id="enoti-empty" alt="Error Notification Empty" />
+                            <img src={enoti_email_invalid} className="login-bus-running__msg" id="enoti-email-invalid" alt="Error Notification Invalid" />
+                            <img src={enoti_psw_short} className="login-bus-running__msg" id="enoti-psw-short" alt="Error Notification Password Short" />
                         </div>
                         <div className="login__bus-holder">
-                            <img className={`bus`} src={bus_img} ref={busRef} />
+                            <img className={`bus`} src={bus_img} ref={busRef} alt="Bus" />
                         </div>
                     </div>
                 </div>

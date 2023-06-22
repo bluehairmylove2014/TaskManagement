@@ -1,12 +1,9 @@
-import React, { memo, useEffect, useRef, useState } from 'react';
+import React, { memo, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import toast from 'react-hot-toast';
 
 // Style
 import '../../assets/styles/scss/_common_component.scss'
-
-// Layout
-import TaskConfiguration from '../layouts/TaskConfiguration';
 
 // Helpers
 import { toggleClassNoListener, toggleClass } from '../../utils/helpers/ToggleClass';
@@ -26,9 +23,6 @@ const Task = ({ task, openEdit }) => {
     const navigate = useNavigate();
     const taskRef = useRef(null);
 
-    useEffect(() => {
-        console.log(taskRef.current.getAttribute('data-taskname'))
-    }, [task])
 
     const renderTag = (tags) => {
         const tag_react_element = tags.map((t, i) => {
@@ -36,7 +30,7 @@ const Task = ({ task, openEdit }) => {
                 <div
                     className="cc-task__tag"
                     style={{ backgroundColor: t.background_color }}
-                    key={`tag@${t.tag_name, i}`}
+                    key={`tag@${t.tag_name}-${i}`}
                     data-testid={`task-tag-${t.tag_name}`}
                 >
                     <p>{t.tag_name}</p>
@@ -49,7 +43,7 @@ const Task = ({ task, openEdit }) => {
     }
     const handleDeleteTask = () => {
         // Call api to detele task on database
-        const deleteTaskPromise = TaskService.serviceHandleDeleteTask(task.id);
+        const deleteTaskPromise = TaskService.serviceHandleDeleteTask(task.tid);
 
         toast.promise(
             deleteTaskPromise,
@@ -67,7 +61,7 @@ const Task = ({ task, openEdit }) => {
                     navigate('/login');
                 } else {
                     // Delete task in state to update interface
-                    reduxDispatch(deleteTask(task.id));
+                    reduxDispatch(deleteTask(task.tid));
                     return response;
                 }
             })
@@ -77,18 +71,27 @@ const Task = ({ task, openEdit }) => {
     }
     return (
         <>
-            <div className='common-component__task' data-taskname={task.task_name} ref={taskRef}>
+            <div 
+                className='common-component__task' 
+                data-taskname={task.task_name} 
+                data-status={task.status}
+                data-priority={task.priority}
+                ref={taskRef}
+            >
                 <div className="cc-task__tag-list">
                     {renderTag(task.tags)}
                 </div>
-                <h6 className='cc-task__title' data-testid='task-title'>{task.task_name}</h6>
+                <h6 className='cc-task__title' data-testid={`task-title@${task.task_name}`}>{task.task_name}</h6>
                 <p className='cc-task__description' data-testid='task-des'>{task.description}</p>
                 <div className="cc-task__duedate" data-testid='task-duedate'>
                     <p>{task.due_date}</p>
                 </div>
                 <div className="cc-task__more-options-wrapper">
                     <div className="cc-task__more-options">
-                        <button onClick={() => toggleClass(moreOpDropdownRef.current, 'active')} data-testid='showDropdown'>
+                        <button 
+                            onClick={() => toggleClass(moreOpDropdownRef.current, 'active')} 
+                            data-testid='showDropdown'
+                        >
                             <i className="fi fi-br-menu-dots-vertical"></i>
                         </button>
                         <div className="cc-task__more-options-dropdown" ref={moreOpDropdownRef}>

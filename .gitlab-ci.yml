@@ -1,0 +1,29 @@
+stages:
+  - build
+  - deploy
+
+build client:
+  stage: build
+  image: node:18
+  variables:
+    CI: "false"
+  script:
+    - npm install
+    - npm run build
+  artifacts:
+    paths:
+      - build/
+  only:
+    - main
+
+deploy to s3:
+  stage: deploy
+  image: 
+    name: amazon/aws-cli
+    entrypoint: [""]
+  script:
+    - aws --version
+    - aws s3 rm s3://$S3_BUCKET --recursive
+    - aws s3 cp build/ s3://$S3_BUCKET --recursive
+  only:
+    - main

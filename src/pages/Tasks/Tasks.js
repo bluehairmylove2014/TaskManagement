@@ -1,7 +1,6 @@
 
 import React, {useCallback, useEffect, useState } from 'react';
 import '../../assets/styles/scss/_tasks.scss';
-import toast, { Toaster } from 'react-hot-toast';
 
 // subcomponent
 import Task from '../../components/common/Task';
@@ -25,6 +24,7 @@ import { setTasks } from '../../redux/actions/tasks.action';
 
 // Debounce support lib
 import { debounce } from 'lodash';
+import { useNavigate } from 'react-router-dom';
 
 const Tasks = () => {
     // Define
@@ -34,16 +34,17 @@ const Tasks = () => {
     const [defaultTaskData, setDefaultTaskData] = useState([]);
     const [isFilterActive, setIsFilterActive] = useState(false);
     const reduxDispatch = useDispatch();
+    const navigate = useNavigate();
 
     // use effect
     useEffect(() => {
         TaskService.serviceHandleGetAllTasks()
             .then(response => {
-                if(response.status_code === 401 || response.status_code === 403) {
-                    // to do
+                if(response.status_code === 200) {
+                    reduxDispatch(setTasks(response.data));
                 }
                 else {
-                    reduxDispatch(setTasks(response.data));
+                    // todo
                 }
             })
             .catch(error => {
@@ -62,9 +63,9 @@ const Tasks = () => {
             .then(response => {
                 if(response.status_code === 401 || response.status_code === 403) {
                     // to do
+                    navigate('/login');
                 }
                 else {
-                    console.log(response.data)
                     reduxDispatch(setTasks(response.data));
                 }
             })
@@ -81,11 +82,20 @@ const Tasks = () => {
     const handleSort = (criteria, status) => {
         let result = [];
         if(criteria && criteria === 'priority') {
-            result = tasks.filter(t => t.status !== status);
-            tasks.slice().reverse().forEach(t => {
-                (t.status === status) && result.push(t);
-            })
-            reduxDispatch(setTasks(result));
+            const notStatusTasks = tasks.filter(t => t.status !== status);
+            const statusTasks = tasks.filter(t => t.status === status);
+            // Create a priority map
+            const priorityMap = {
+                'Negligible': 1,
+                'Minor': 2,
+                'Moderate': 3,
+                'Significant': 4,
+                'Critical': 5
+            };
+            // Sort the tasks based on the priority
+            const sortedTasks = statusTasks.sort((a, b) => priorityMap[b.priority] - priorityMap[a.priority]);
+            sortedTasks.forEach(t => notStatusTasks.push(t));
+            reduxDispatch(setTasks(notStatusTasks));
         }
         else if(criteria && criteria === 'revert') {
             result = tasks.filter(t => t.status !== status);
@@ -108,26 +118,37 @@ const Tasks = () => {
         const taskResult = task_list_data.filter(t => task_status === t.status);
         // Return an array of react_element which is a task
         return (
-            <div className="tasks-main__list" key={task_status}>
+            <div className="tasks-main__list" data-testid={task_list_name} key={task_status}>
                 <div className="tasks-main-list__header">
                     <h2>{task_list_name}</h2>
                     <div className="tasks-main-list-header__interact-container">
                         <div className="tasks-main-list-header__sort-container">
-                            <button onClick={showSortOptions}>
+                            <button 
+                                className='tasks-main-list-header__sort-options-btn'
+                                data-testid={`sort-options-btn@${task_list_name}`} 
+                                onClick={showSortOptions}
+                            >
                                 <i className="fi fi-br-sort-alpha-down"></i>
                             </button>
                             <div className="tasks-main-list-header__sort-dropdown">
-                                <button onClick={() => handleSort('priority', task_status)}>
+                                <button 
+                                    className='tasks-main-list-header__priority-sort'
+                                    onClick={() => handleSort('priority', task_status)}
+                                >
                                     <i className="fi fi-rr-star"></i>
                                     <span>Sort by priority</span>
                                 </button>
-                                <button onClick={() => handleSort('revert', task_status)}>
+                                <button 
+                                    className='tasks-main-list-header__reverse-sort'
+                                    onClick={() => handleSort('revert', task_status)}
+                                >
                                     <i className="fi fi-rr-arrow-up-square-triangle"></i>
                                     <span>Revert sort</span>
                                 </button>
                             </div>
                         </div>
                         <button
+                            className='tasks-main-list-header__create-btn'
                             onClick={() => openCreateTask()} 
                             id={task_status}
                             data-testid={`createTask-btn-${task_list_name}`}
@@ -141,7 +162,7 @@ const Tasks = () => {
                         taskResult.map(t => {
                             return <Task 
                                 task={t} 
-                                key={t.id} 
+                                key={t.tid} 
                                 openEdit={openEditTask}
                             />
                         })
@@ -155,17 +176,19 @@ const Tasks = () => {
         setDefaultTaskData(task_data);
         setConfigTaskType('edit');
         setIsConfigTaskActive(true);
-    })
+    }, [setDefaultTaskData, setConfigTaskType, setIsConfigTaskActive])
+    
     const openCreateTask = () => {
         setDefaultTaskData({});
         setConfigTaskType('new');
         setIsConfigTaskActive(true);
     }
+    
     const closeEditTask = useCallback(() => {
         setConfigTaskType('new');
         setDefaultTaskData({});
         setIsConfigTaskActive(false);
-    })
+    }, [setConfigTaskType, setDefaultTaskData, setIsConfigTaskActive])
 
     return (
         <main className='tasks'>
@@ -181,7 +204,7 @@ const Tasks = () => {
                         <span>Filter</span>
                     </button>
                     <div className="tasks__search-box">
-                        <input type="text" placeholder='Search anything...' onChange={(e) => fetchTasksDataByName(e.target.value)}/>
+                        <input type="text" placeholder='Search anything...' onInput={(e) => fetchTasksDataByName(e.target.value)}/>
                         <button type='button'>
                             <i className="fi fi-rr-search"></i>
                         </button>
@@ -207,5 +230,6 @@ const Tasks = () => {
 }
 
 export default Tasks;
+
 
 

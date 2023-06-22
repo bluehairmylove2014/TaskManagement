@@ -52,18 +52,18 @@ const Header = () => {
                 </button>
                 {/* Show if user hasn't logged in yet */}
                 <Link to='/login' className={`header__user-login-btn ${ !loginStatus && 'active' }`}>
-                    Login
+                    Sign In
                 </Link>
                 <Link to='/login' className={`header__user-joinus-btn ${ !loginStatus && 'active' }`}>
                     Join us!
                 </Link>
                 {/* Only show if user was logged in*/}
                 <div className={`header__user-dropdown-wrapper ${ loginStatus && 'active' }`}>
-                    <Link to='/profile'>
+                    <Link to='/profile' data-testid={'avatar'}>
                         <img src="https://rialloer.sirv.com/Sunrise-Continent/Users/IMG_0615-min%20(1).jpg?w=500&h=500" alt="user-avatar" />
                     </Link>
                     <div className="header__user-dropdown">
-                        <button onClick={e => toggleClass(e.target.parentNode, 'active')}>
+                        <button data-testid='user-interaction-btn' onClick={e => toggleClass(e.target.parentNode, 'active')}>
                             <i className="fi fi-rr-angle-small-down"></i>
                         </button>
                         <ul className="header-user-dropdown__content">
@@ -80,7 +80,7 @@ const Header = () => {
                                 </Link>
                             </li>
                             <li>
-                                <button onClick={() => UserService.logout()}>
+                                <button data-testid={'logout-btn'} onClick={() => UserService.logout()}>
                                     <i className="fi fi-rr-power"></i>
                                     <span>Logout</span>
                                 </button>

@@ -1,4 +1,4 @@
-const REST_API_SERVER = 'https://spring-green-magpie-tam.cyclic.app';
+const REST_API_SERVER = 'https://sunrise-continent-server.cyclic.app';
 
 // Task management
 export function getAllTasksApi(authToken) {

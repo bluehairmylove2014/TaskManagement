@@ -10,11 +10,11 @@ const taskReducer = (state = tasks, action) => {
             return [...state, action.payload];
         case 'EDIT_TASK':
             return state.map(t => {
-                (t.id === action.payload.id) && (t = {...action.payload})
+                (t.tid === action.payload.tid) && (t = {...action.payload})
                 return t;
             })
         case 'DELETE_TASK':
-            return state.filter(t => t.id !== action.payload)
+            return state.filter(t => t.tid !== action.payload)
 
         default:
             return state;

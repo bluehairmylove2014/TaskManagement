@@ -1,9 +1,0 @@
-{
-    "env": {
-        "test": {
-            "plugins": [
-                "transform-modules-commonjs"
-            ]
-        }
-    }
-}
