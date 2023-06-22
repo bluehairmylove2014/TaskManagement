@@ -20,21 +20,12 @@ import redux_store from './redux/store';
 // Service
 import UserService from './services/UserService';
 
-// Code spliting, lazy loading component
-const TasksPage = lazy(() => import('./pages/Tasks/Tasks'));
-const LoginPage = lazy(() => import('./pages/Login/Login'));
+// Component
+import TasksPage from './pages/Tasks/Tasks';
+import LoginPage from './pages/Login/Login';
 
 
 function App() {
-  const [isLoading, setIsLoading] = useState(true); // Initialize state for loading status
-
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      setIsLoading(false);
-    }, 2000);
-
-    return () => clearTimeout(timer);
-  }, []);
   return (
     <Provider store={redux_store}>
       <BrowserRouter>
@@ -43,19 +34,13 @@ function App() {
             position="bottom-right"
             reverseOrder={false}
           />
-          <Suspense fallback={<PageLoader></PageLoader>}>
-          {isLoading ? (
-            <PageLoader />
-          ) : (
-            <Routes>
-              <Route exact path='/' element={<Navigate to='/tasks' />} />
-              <Route exact path='/login' element={<LoginPage />} />
-              <Route path='/tasks' element={
-                <><TasksPage /><Header account={UserService.isLoggedIn()} /><Footer /></>
-              } />
-            </Routes>
-          )}
-          </Suspense>
+          <Routes>
+            <Route exact path='/' element={<Navigate to='/tasks' />} />
+            <Route exact path='/login' element={<LoginPage />} />
+            <Route path='/tasks' element={
+              <><TasksPage /><Header account={UserService.isLoggedIn()} /><Footer /></>
+            } />
+          </Routes>
         </div>
       </BrowserRouter>
     </Provider>

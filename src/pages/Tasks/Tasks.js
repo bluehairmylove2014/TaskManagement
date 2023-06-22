@@ -1,5 +1,5 @@
 
-import React, {useCallback, useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import '../../assets/styles/scss/_tasks.scss';
 
 // subcomponent
@@ -26,13 +26,19 @@ import { setTasks } from '../../redux/actions/tasks.action';
 import { debounce } from 'lodash';
 import { useNavigate } from 'react-router-dom';
 
+// Page loader
+import PageLoader from '../../components/common/PageLoader';
+
 const Tasks = () => {
     // Define
     const tasks = useSelector(state => state.tasks);
+
     const [isConfigTaskActive, setIsConfigTaskActive] = useState(false);
     const [configTaskType, setConfigTaskType] = useState('new');
     const [defaultTaskData, setDefaultTaskData] = useState([]);
     const [isFilterActive, setIsFilterActive] = useState(false);
+    const [isLoading, setIsLoading] = useState(true);
+
     const reduxDispatch = useDispatch();
     const navigate = useNavigate();
 
@@ -40,7 +46,7 @@ const Tasks = () => {
     useEffect(() => {
         TaskService.serviceHandleGetAllTasks()
             .then(response => {
-                if(response.status_code === 200) {
+                if (response.status_code === 200) {
                     reduxDispatch(setTasks(response.data));
                 }
                 else {
@@ -49,6 +55,11 @@ const Tasks = () => {
             })
             .catch(error => {
                 console.log(error)
+            })
+            .finally(() => {
+                setTimeout(() => {
+                    setIsLoading(false);
+                }, 1000);
             })
     }, [reduxDispatch]);
 
@@ -61,7 +72,7 @@ const Tasks = () => {
     const fetchTasksDataByName = debounce((name) => {
         TaskService.serviceSetTasksByName(name)
             .then(response => {
-                if(response.status_code === 401 || response.status_code === 403) {
+                if (response.status_code === 401 || response.status_code === 403) {
                     // to do
                     navigate('/login');
                 }
@@ -81,7 +92,7 @@ const Tasks = () => {
 
     const handleSort = (criteria, status) => {
         let result = [];
-        if(criteria && criteria === 'priority') {
+        if (criteria && criteria === 'priority') {
             const notStatusTasks = tasks.filter(t => t.status !== status);
             const statusTasks = tasks.filter(t => t.status === status);
             // Create a priority map
@@ -97,7 +108,7 @@ const Tasks = () => {
             sortedTasks.forEach(t => notStatusTasks.push(t));
             reduxDispatch(setTasks(notStatusTasks));
         }
-        else if(criteria && criteria === 'revert') {
+        else if (criteria && criteria === 'revert') {
             result = tasks.filter(t => t.status !== status);
             tasks.slice().reverse().forEach(t => {
                 t.status === status && result.push(t);
@@ -111,7 +122,7 @@ const Tasks = () => {
 
     const renderTaskList = (task_list_name, task_status, task_list_data) => {
         // Check if data is valid
-        if(!Array.isArray(task_list_data)) {
+        if (!Array.isArray(task_list_data)) {
             return <></>;
         }
         // Find the task have the same status
@@ -123,22 +134,22 @@ const Tasks = () => {
                     <h2>{task_list_name}</h2>
                     <div className="tasks-main-list-header__interact-container">
                         <div className="tasks-main-list-header__sort-container">
-                            <button 
+                            <button
                                 className='tasks-main-list-header__sort-options-btn'
-                                data-testid={`sort-options-btn@${task_list_name}`} 
+                                data-testid={`sort-options-btn@${task_list_name}`}
                                 onClick={showSortOptions}
                             >
                                 <i className="fi fi-br-sort-alpha-down"></i>
                             </button>
                             <div className="tasks-main-list-header__sort-dropdown">
-                                <button 
+                                <button
                                     className='tasks-main-list-header__priority-sort'
                                     onClick={() => handleSort('priority', task_status)}
                                 >
                                     <i className="fi fi-rr-star"></i>
                                     <span>Sort by priority</span>
                                 </button>
-                                <button 
+                                <button
                                     className='tasks-main-list-header__reverse-sort'
                                     onClick={() => handleSort('revert', task_status)}
                                 >
@@ -149,7 +160,7 @@ const Tasks = () => {
                         </div>
                         <button
                             className='tasks-main-list-header__create-btn'
-                            onClick={() => openCreateTask()} 
+                            onClick={() => openCreateTask()}
                             id={task_status}
                             data-testid={`createTask-btn-${task_list_name}`}
                         >
@@ -160,9 +171,9 @@ const Tasks = () => {
                 <div className="tasks-main-list__content">
                     {
                         taskResult.map(t => {
-                            return <Task 
-                                task={t} 
-                                key={t.tid} 
+                            return <Task
+                                task={t}
+                                key={t.tid}
                                 openEdit={openEditTask}
                             />
                         })
@@ -177,13 +188,13 @@ const Tasks = () => {
         setConfigTaskType('edit');
         setIsConfigTaskActive(true);
     }, [setDefaultTaskData, setConfigTaskType, setIsConfigTaskActive])
-    
+
     const openCreateTask = () => {
         setDefaultTaskData({});
         setConfigTaskType('new');
         setIsConfigTaskActive(true);
     }
-    
+
     const closeEditTask = useCallback(() => {
         setConfigTaskType('new');
         setDefaultTaskData({});
@@ -191,41 +202,44 @@ const Tasks = () => {
     }, [setConfigTaskType, setDefaultTaskData, setIsConfigTaskActive])
 
     return (
-        <main className='tasks'>
-            <div className="tasks__header">
-                <div className="tasks-header__title">
-                    <img src={TaskSVGIcons} className='tasks-header__title-icon' alt="" />
-                    <h1>Tasks</h1>
-                </div>
-                
-                <div className="tasks__interact-field">
-                    <button className='tasks__filter-btn' onClick={() => setIsFilterActive(!isFilterActive)}>
-                        <i className="fi fi-br-settings-sliders"></i>
-                        <span>Filter</span>
-                    </button>
-                    <div className="tasks__search-box">
-                        <input type="text" placeholder='Search anything...' onInput={(e) => fetchTasksDataByName(e.target.value)}/>
-                        <button type='button'>
-                            <i className="fi fi-rr-search"></i>
+        <>
+            {isLoading && <PageLoader />}
+            <main className='tasks'>
+                <div className="tasks__header">
+                    <div className="tasks-header__title">
+                        <img src={TaskSVGIcons} className='tasks-header__title-icon' alt="" />
+                        <h1>Tasks</h1>
+                    </div>
+
+                    <div className="tasks__interact-field">
+                        <button className='tasks__filter-btn' onClick={() => setIsFilterActive(!isFilterActive)}>
+                            <i className="fi fi-br-settings-sliders"></i>
+                            <span>Filter</span>
                         </button>
+                        <div className="tasks__search-box">
+                            <input type="text" placeholder='Search anything...' onInput={(e) => fetchTasksDataByName(e.target.value)} />
+                            <button type='button'>
+                                <i className="fi fi-rr-search"></i>
+                            </button>
+                        </div>
                     </div>
                 </div>
-            </div>
-            <div className="tasks__main">
-                {/* Rnder 4 task lists vertically */}
-                {renderTaskList('Backlog', 'Backlog', tasks)}
-                {renderTaskList('To Do', 'To Do', tasks)}
-                {renderTaskList('Process', 'Process', tasks)}
-                {renderTaskList('Done', 'Done', tasks)}
-            </div>
-            <TaskConfiguration 
-                isShow={isConfigTaskActive} 
-                type={configTaskType}
-                task_data={defaultTaskData}
-                closeEdit={closeEditTask}
-            />
-            <FilterBoard isShow={isFilterActive} callback={setIsFilterActive}/>
-        </main>
+                <div className="tasks__main">
+                    {/* Rnder 4 task lists vertically */}
+                    {renderTaskList('Backlog', 'Backlog', tasks)}
+                    {renderTaskList('To Do', 'To Do', tasks)}
+                    {renderTaskList('Process', 'Process', tasks)}
+                    {renderTaskList('Done', 'Done', tasks)}
+                </div>
+                <TaskConfiguration
+                    isShow={isConfigTaskActive}
+                    type={configTaskType}
+                    task_data={defaultTaskData}
+                    closeEdit={closeEditTask}
+                />
+                <FilterBoard isShow={isFilterActive} callback={setIsFilterActive} />
+            </main>
+        </>
     );
 }
 

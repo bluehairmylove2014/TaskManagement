@@ -463,7 +463,11 @@ $mobile-breakpoint: 480px;
 }
 
 .common-component__page-loader {
-    position: relative;
+    position: fixed;
+    top: 0;
+    left: 0;
+    background-color: white;
+    z-index: 999;
     width: 100vw;
     height: 100vh;
     .cc__page-loader-container {
